@@ -45,3 +45,9 @@ functions:
       - http:
           path: healthcheck
           method: post
+  getToken:
+    handler: src/functions/authorizer.getToken
+    events:
+      - http:
+          path: auth/token
+          method: post

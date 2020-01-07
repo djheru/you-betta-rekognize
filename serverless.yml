@@ -19,6 +19,10 @@ custom:
       - - 'https://'
         - Ref: ApiGatewayRestApi
         - '.execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}'
+  twitterConsumerAPIKey: ${ssm:/you-betta-rekognize/TWITTER_CONSUMER_API_KEY~true}
+  twitterConsumerAPIKeySecret: ${ssm:/you-betta-rekognize/TWITTER_CONSUMER_API_KEY_SECRET~true}
+  twitterAccessToken: ${ssm:/you-betta-rekognize/TWITTER_ACCESS_TOKEN~true}
+  twitterAccessTokenSecret: ${ssm:/you-betta-rekognize/TWITTER_ACCESS_TOKEN_SECRET~true}
 
 provider:
   name: aws
@@ -29,6 +33,10 @@ provider:
   environment:
     NODE_ENV: ${self:provider.stage}
     API_GATEWAY_URL: ${self:custom.apiGatewayUrl}
+    TWITTER_CONSUMER_API_KEY: ${self:custom.twitterConsumerAPIKey}
+    TWITTER_CONSUMER_API_KEY_SECRET: ${self:custom.twitterConsumerAPIKeySecret}
+    TWITTER_ACCESS_TOKEN: ${self:custom.twitterAccessToken}
+    TWITTER_ACCESS_TOKEN_SECRET: ${self:custom.twitterAccessTokenSecret}
 
 functions:
   healthCheck:

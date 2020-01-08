@@ -1,4 +1,4 @@
-import { login } from '../services/auth';
+import { checkAuthorization, generatePolicy, login } from '../services/auth';
 
 export const getToken = async event => {
   try {
@@ -20,5 +20,17 @@ export const getToken = async event => {
         error: `Invalid login: ${e.message}`,
       }),
     };
+  }
+};
+
+export const authorize = async event => {
+  try {
+    const tokenParts = event.authorizationToken.split(' ');
+    const token = tokenParts[1];
+    const twitterToken = await checkAuthorization(token);
+    return generatePolicy(twitterToken, 'Allow', event.methodArn);
+  } catch (e) {
+    console.log('Invalid token in authorizer', e);
+    return generatePolicy('', 'Deny', event.methodArn);
   }
 };

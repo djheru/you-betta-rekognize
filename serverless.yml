@@ -39,12 +39,17 @@ provider:
     TWITTER_ACCESS_TOKEN_SECRET: ${self:custom.twitterAccessTokenSecret}
 
 functions:
+  customAuthorizer:
+    handler: src/functions/authorizer.authorize
   healthCheck:
     handler: src/functions/healthCheck.handler
     events:
       - http:
           path: healthcheck
           method: post
+          # This will run our requests through the authorizer first,
+          # before hitting the health check function
+          authorizer: customAuthorizer
   getToken:
     handler: src/functions/authorizer.getToken
     events:

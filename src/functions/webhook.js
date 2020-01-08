@@ -1,4 +1,5 @@
 import { deleteWebhook, createWebhook, generateWebhookResponseToken } from '../services/webhook';
+import { processTweet } from '../services/twitter';
 
 export const register = async event => {
   console.log(event);
@@ -40,9 +41,8 @@ export const deregister = async event => {
 };
 
 export const process = async event => {
-  // const result = await processTweet(event);
-  const result = JSON.parse(event.body);
-  console.log('Request body: %j', result);
+  const result = await processTweet(event);
+  console.log('Result: %j', result);
   return result
     ? { statusCode: 200 }
     : {

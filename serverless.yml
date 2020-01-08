@@ -19,6 +19,7 @@ custom:
       - - 'https://'
         - Ref: ApiGatewayRestApi
         - '.execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}'
+  bucket: ${ssm:/you-betta-rekognize/BUCKET~true}
   twitterConsumerAPIKey: ${ssm:/you-betta-rekognize/TWITTER_CONSUMER_API_KEY~true}
   twitterConsumerAPIKeySecret: ${ssm:/you-betta-rekognize/TWITTER_CONSUMER_API_KEY_SECRET~true}
   twitterAccessToken: ${ssm:/you-betta-rekognize/TWITTER_ACCESS_TOKEN~true}
@@ -31,7 +32,21 @@ provider:
   region: ${opt:region, 'us-west-2'}
   runtime: nodejs10.x
   stage: ${opt:stage, 'dev'}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:PutObjectAcl
+      Resource:
+        - Fn::Join:
+            - ':'
+            - - 'arn'
+              - 'aws'
+              - 's3'
+              - ':'
+              - ${self:custom.bucket}/*
   environment:
+    BUCKET: ${self:custom.bucket}
     NODE_ENV: ${self:provider.stage}
     API_GATEWAY_URL: ${self:custom.apiGatewayUrl}
     TWITTER_CONSUMER_API_KEY: ${self:custom.twitterConsumerAPIKey}

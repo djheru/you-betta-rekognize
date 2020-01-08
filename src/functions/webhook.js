@@ -38,3 +38,15 @@ export const deregister = async event => {
         body: JSON.stringify({ error: 'Unable to deregister webook' }),
       };
 };
+
+export const process = async event => {
+  // const result = await processTweet(event);
+  const result = JSON.parse(event.body);
+  console.log('Request body: %j', result);
+  return result
+    ? { statusCode: 200 }
+    : {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Unable to process tweet' }),
+      };
+};

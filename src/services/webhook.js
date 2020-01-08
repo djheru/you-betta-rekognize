@@ -103,3 +103,48 @@ export const deleteWebhook = async () => {
     return false;
   }
 };
+
+export const subscribe = async () => {
+  try {
+    const webhookResponse = await getWebhook();
+    if (!webhookResponse) {
+      // Must have a webhook registered
+      console.log('No webhook registered');
+      return false;
+    }
+
+    const requestOptions = {
+      url: `${TWITTER_WEBHOOK_URL}/${TWITTER_DEV_ENV}/subscriptions.json`,
+      oauth,
+      resolveWithFullResponse: true,
+    };
+    const response = await request.post(requestOptions);
+    console.log('subscribe', response);
+    return true;
+  } catch (e) {
+    console.log('subscribe err', e);
+    return false;
+  }
+};
+
+export const unsubscribe = async () => {
+  try {
+    const webhookResponse = await getWebhook();
+    if (!webhookResponse) {
+      // If there's no webhook, there can't be a subscription, so we're good
+      return true;
+    }
+
+    const requestOptions = {
+      url: `${TWITTER_WEBHOOK_URL}/${TWITTER_DEV_ENV}/subscriptions.json`,
+      oauth,
+      resolveWithFullResponse: true,
+    };
+    const response = await request.delete(requestOptions);
+    console.log('unsubscribe', response);
+    return true;
+  } catch (e) {
+    console.log('unsubscribe err', e);
+    return false;
+  }
+};

@@ -43,6 +43,7 @@ provider:
 functions:
   customAuthorizer:
     handler: src/functions/authorizer.authorize
+
   healthCheck:
     handler: src/functions/healthCheck.handler
     events:
@@ -52,12 +53,14 @@ functions:
           # This will run our requests through the authorizer first,
           # before hitting the health check function
           authorizer: customAuthorizer
+
   getToken:
     handler: src/functions/authorizer.getToken
     events:
       - http:
           path: auth/token
           method: post
+
   registerWebhook:
     handler: src/functions/webhook.register
     events:
@@ -80,3 +83,26 @@ functions:
       - http:
           path: webhook/validate
           method: get
+
+  addSubscription:
+    handler: src/functions/subscription.add
+    events:
+      - http:
+          path: subscription/add
+          method: post
+          authorizer: customAuthorizer
+
+  removeSubscription:
+    handler: src/functions/subscription.remove
+    events:
+      - http:
+          path: subscription/remove
+          method: delete
+          authorizer: customAuthorizer
+
+  processTweet:
+    handler: src/functions/webhook.process
+    events:
+      - http:
+          path: webhook/process
+          method: post

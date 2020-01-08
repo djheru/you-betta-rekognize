@@ -23,6 +23,7 @@ custom:
   twitterConsumerAPIKeySecret: ${ssm:/you-betta-rekognize/TWITTER_CONSUMER_API_KEY_SECRET~true}
   twitterAccessToken: ${ssm:/you-betta-rekognize/TWITTER_ACCESS_TOKEN~true}
   twitterAccessTokenSecret: ${ssm:/you-betta-rekognize/TWITTER_ACCESS_TOKEN_SECRET~true}
+  twitterDevEnvironment: youbettarekognize
 
 provider:
   name: aws
@@ -37,6 +38,7 @@ provider:
     TWITTER_CONSUMER_API_KEY_SECRET: ${self:custom.twitterConsumerAPIKeySecret}
     TWITTER_ACCESS_TOKEN: ${self:custom.twitterAccessToken}
     TWITTER_ACCESS_TOKEN_SECRET: ${self:custom.twitterAccessTokenSecret}
+    TWITTER_DEV_ENV: ${self:custom.twitterDevEnvironment}
 
 functions:
   customAuthorizer:
@@ -56,3 +58,25 @@ functions:
       - http:
           path: auth/token
           method: post
+  registerWebhook:
+    handler: src/functions/webhook.register
+    events:
+      - http:
+          path: webhook/register
+          method: post
+          authorizer: customAuthorizer
+
+  deregisterWebhook:
+    handler: src/functions/webhook.deregister
+    events:
+      - http:
+          path: webhook/deregister
+          method: delete
+          authorizer: customAuthorizer
+
+  validateWebhook:
+    handler: src/functions/webhook.validate
+    events:
+      - http:
+          path: webhook/validate
+          method: get

@@ -35,8 +35,14 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
+        - rekognition:DetectLabels
+        - rekognition:RecognizeCelebrities
+      Resource: '*'
+    - Effect: Allow
+      Action:
         - s3:PutObject
         - s3:PutObjectAcl
+        - s3:GetObject
       Resource:
         - Fn::Join:
             - ':'
@@ -121,3 +127,11 @@ functions:
       - http:
           path: webhook/process
           method: post
+
+  respondToTweet:
+    handler: src/functions/tweet.respond
+    events:
+      - s3:
+          bucket: ${self:custom.bucket}
+          event: s3:ObjectCreated:*
+          existing: true

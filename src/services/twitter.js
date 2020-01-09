@@ -1,9 +1,27 @@
 import AWS from 'aws-sdk';
 import request from 'request-promise';
+import { recognizeImage } from './image';
 
 const { BUCKET = '' } = process.env;
 const SEPARATOR = '_-_';
 const s3 = new AWS.S3();
+const TWITTER_STATUS_URL = 'https://api.twitter.com/1.1/statuses/update.json';
+
+const {
+  TWITTER_ACCESS_TOKEN = '',
+  TWITTER_ACCESS_TOKEN_SECRET = '',
+  TWITTER_CONSUMER_API_KEY = '',
+  TWITTER_CONSUMER_API_KEY_SECRET = '',
+} = process.env;
+
+const oauth = {
+  consumer_key: TWITTER_CONSUMER_API_KEY,
+  consumer_secret: TWITTER_CONSUMER_API_KEY_SECRET,
+  token: TWITTER_ACCESS_TOKEN,
+  token_secret: TWITTER_ACCESS_TOKEN_SECRET,
+};
+
+const TWEET_CHARACTER_LIMIT = 240;
 
 const parseTweet = tweet => {
   const tweetData = tweet.tweet_create_events;
@@ -66,6 +84,94 @@ export const processTweet = async event => {
     return true;
   } catch (e) {
     console.log('process tweet err', e);
+    return false;
+  }
+};
+
+const splitTweet = (heading, labelMessage, celebMessage) => {
+  const split = `${heading}${labelMessage}${celebMessage}`.split('\n');
+  const chunks = [];
+  let currentChunk = '';
+  for (const chunk of split) {
+    if (currentChunk.length + chunk.length > TWEET_CHARACTER_LIMIT) {
+      chunks.push(currentChunk);
+      currentChunk = chunk;
+    } else {
+      currentChunk = currentChunk.concat(`\n${chunk}`);
+    }
+  }
+  if (currentChunk !== '') {
+    chunks.push(currentChunk);
+  }
+  return chunks;
+};
+
+const createTweet = async (status, tweetId) => {
+  const requestOptions = {
+    url: TWITTER_STATUS_URL,
+    oauth,
+    headers: {
+      'Content-type': 'application/x-www-form-urlencoded',
+    },
+    form: {
+      status,
+      in_reply_to_status_id: tweetId,
+      auto_populate_reply_metadata: true,
+    },
+    resolveWithFullResponse: true,
+  };
+  try {
+    const response = await request.post(requestOptions);
+    console.log('createTweet', response.body);
+    return true;
+  } catch (e) {
+    console.log('create tweet err', e.message);
+    return false;
+  }
+};
+
+export const composeTweet = (username, labels = [], celebrities = []) => {
+  let heading = `Hi @${username}, I like your image. \n`;
+  let labelMessage = ``;
+  let celebMessage = ``;
+  if (labels.length + celebrities.length === 0) {
+    heading += "I can't recognize anything in the image though...";
+  } else {
+    if (labels.length) {
+      labelMessage += `I recognize some things in this image: ${labels.map(l => l.Name || 'something').join(', ')}\n`;
+    }
+    if (celebrities.length) {
+      const celebFormatter = c => `${c.name} (${c.url}) `;
+      celebMessage += `I see some celebs, too: ${celebrities.map(celebFormatter).join('\n')}`;
+    }
+  }
+  return { heading, labelMessage, celebMessage };
+};
+
+export const respondToImageTweet = async event => {
+  try {
+    const { s3 } = event.Records[0];
+    const [screenName, tweetId] = s3.object.key.split(SEPARATOR);
+
+    const { labels, celebrities } = await recognizeImage(s3);
+    console.log('image contents', { labels, celebrities });
+
+    const { heading, labelMessage, celebMessage } = composeTweet(screenName, labels, celebrities);
+
+    const tweetLength = heading.length + labelMessage.length + celebMessage.length;
+    if (tweetLength > TWEET_CHARACTER_LIMIT) {
+      const tweetChunks = splitTweet(heading, labelMessage, celebMessage);
+      console.log('tweetChunks', tweetChunks);
+      const createTweetPromises = tweetChunks.map(chunk => createTweet(chunk, tweetId));
+      await Promise.all(createTweetPromises);
+    } else {
+      const message = `${heading}${labelMessage}${celebMessage}`;
+      await createTweet(message, tweetId);
+      console.log('respond to image tweet', message);
+    }
+    return true;
+  } catch (e) {
+    console.log('respond to tweet err', e.message);
     return false;
   }
 };

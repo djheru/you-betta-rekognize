@@ -24,7 +24,7 @@ custom:
   twitterConsumerAPIKeySecret: ${ssm:/you-betta-rekognize/TWITTER_CONSUMER_API_KEY_SECRET~true}
   twitterAccessToken: ${ssm:/you-betta-rekognize/TWITTER_ACCESS_TOKEN~true}
   twitterAccessTokenSecret: ${ssm:/you-betta-rekognize/TWITTER_ACCESS_TOKEN_SECRET~true}
-  twitterDevEnvironment: youbettarekognize
+  twitterDevEnvironment: ybr
 
 provider:
   name: aws
@@ -102,7 +102,7 @@ functions:
     handler: src/functions/webhook.validate
     events:
       - http:
-          path: webhook/validate
+          path: webhook/process
           method: get
 
   addSubscription:

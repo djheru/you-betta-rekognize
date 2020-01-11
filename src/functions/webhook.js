@@ -21,6 +21,7 @@ export const validate = async event => {
   }
   const { crc_token: crcToken = '' } = queryStringParameters;
   const token = generateWebhookResponseToken(crcToken);
+  console.log('Generated Token: %j', token);
   return token
     ? { statusCode: 200, body: token }
     : {

@@ -21,7 +21,6 @@ const getLabels = async (name, key) => {
       MinConfidence: 25,
     };
     const imageData = await rekognition.detectLabels(params).promise();
-    console.log({ imageData });
     return imageData && imageData.Labels ? imageData.Labels : [];
   } catch (e) {
     console.log('Error getting image labels: ', e);
@@ -44,7 +43,6 @@ const getCelebrities = async (name, key) => {
       return [];
     }
     const celebrities = celebrityData.CelebrityFaces.map(formatCelebrities);
-    console.log({ celebrities });
     return celebrities;
   } catch (e) {
     console.log('Error getting image labels: ', e);
@@ -56,10 +54,10 @@ export const recognizeImage = async meta => {
   try {
     const { bucket: { name = '' } = {}, object: { key = '' } = {} } = meta;
     const labels = await getLabels(name, key);
-    console.log('image recognition data: ', labels);
+    console.log('image recognition data: %j', labels);
 
     const celebrities = await getCelebrities(name, key);
-    console.log('celebrity recognition data: ', celebrities);
+    console.log('celebrity recognition data: %j', celebrities);
 
     return { labels, celebrities };
   } catch (err) {

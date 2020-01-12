@@ -70,7 +70,7 @@ export const processTweet = async event => {
       return true;
     }
     const { tweetId = '', userId = '', screenName = '', mediaUrl = '', type = '' } = parsedTweet;
-    console.log('processTweet', { tweetId, userId, screenName, mediaUrl, type });
+    console.log('processTweet: %j', { tweetId, userId, screenName, mediaUrl, type });
     if (!mediaUrl || type !== 'photo') {
       return true; // don't do anything
     }
@@ -122,7 +122,7 @@ const createTweet = async (status, tweetId) => {
   };
   try {
     const response = await request.post(requestOptions);
-    console.log('createTweet', response.body);
+    console.log('createTweet: %j', response.body);
     return true;
   } catch (e) {
     console.log('create tweet err', e.message);
@@ -154,14 +154,14 @@ export const respondToImageTweet = async event => {
     const [screenName, tweetId] = s3.object.key.split(SEPARATOR);
 
     const { labels, celebrities } = await recognizeImage(s3);
-    console.log('image contents', { labels, celebrities });
+    console.log('image contents: %j', { labels, celebrities });
 
     const { heading, labelMessage, celebMessage } = composeTweet(screenName, labels, celebrities);
 
     const tweetLength = heading.length + labelMessage.length + celebMessage.length;
     if (tweetLength > TWEET_CHARACTER_LIMIT) {
       const tweetChunks = splitTweet(heading, labelMessage, celebMessage);
-      console.log('tweetChunks', tweetChunks);
+      console.log('tweetChunks: %j', tweetChunks);
       const createTweetPromises = tweetChunks.map(chunk => createTweet(chunk, tweetId));
       await Promise.all(createTweetPromises);
     } else {
